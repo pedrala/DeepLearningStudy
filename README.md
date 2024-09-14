@@ -85,3 +85,9 @@ SSD (Single Shot Multibox Detector)
 
 SSD 사물인지 CCTV 프로젝트 소스코드 분석
 ==========================================
+
+
+
+![ex_run_ssd_example_output](img src=./run_ssd_example_output.jpg)
+
+<img src="./run_ssd_example_output_run3_mp4.jpg", height="100x", width="100px">
