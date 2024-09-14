@@ -87,7 +87,7 @@ SSD 사물인지 CCTV 프로젝트 소스코드 분석
 ==========================================
 
 
+![run_ssd_example_output](https://github.com/user-attachments/assets/7a937977-5742-40f1-960f-38e27a556b14)
 
-![ex_run_ssd_example_output](img src=./run_ssd_example_output.jpg)
 
 <img src="./run_ssd_example_output_run3_mp4.jpg", height="100x", width="100px">
