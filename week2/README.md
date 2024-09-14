@@ -968,6 +968,7 @@ if __name__ == '__main__':
 
 run_ssd_example.py
 -----------------------------
+사진 파일 추론시 사용합니다.
 
 ```python
 
@@ -1082,6 +1083,7 @@ print(f"Found {len(probs)} objects. The output image is {path}")  # 탐지된 �
 inference_ssd_windows.py
 -------------------------
 SSD 사물인지 CCTV 추론코드
+영상파일 추론시 사용합니다.
 
 ```python
 
