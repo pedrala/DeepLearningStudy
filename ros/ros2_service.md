@@ -76,3 +76,137 @@ if __name__ == '__main__':
     main()
 
 ```
+calculator.py
+------------
+구글의 오픈 이미지 데이터세트로 모델을 학습시킬 수 있는 파이썬코드
+여기에서 cctv사물인지를 위해 내려받은 데이터셋트를 SSD MobileNet v1 네트워크로 학습시키는 함수를 확인할 수 있음
+
+```python
+
+import time  # 시간 관련 함수 사용을 위한 모듈
+
+from ros_study_msgs.action import ArithmeticChecker  # ArithmeticChecker 액션 메시지 임포트
+from ros_study_msgs.msg import ArithmeticArgument  # ArithmeticArgument 메시지 임포트
+from ros_study_msgs.srv import ArithmeticOperator  # ArithmeticOperator 서비스 메시지 임포트
+from rclpy.action import ActionServer  # ROS 2 액션 서버 클래스 임포트
+from rclpy.callback_groups import ReentrantCallbackGroup  # 콜백 그룹 관리 클래스
+from rclpy.node import Node  # ROS 2 노드 클래스 임포트
+from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy  # QoS 관련 설정
+
+# Calculator 클래스 정의: 메시지 구독, 서비스 제공, 액션 서버 포함
+class Calculator(Node):
+
+    def __init__(self):
+        super().__init__('calculator')  # 'calculator'라는 이름으로 노드 초기화
+        self.argument_a = 0.0  # 구독할 첫 번째 값
+        self.argument_b = 0.0  # 구독할 두 번째 값
+        self.argument_operator = 0  # 서비스로 받을 연산자 값
+        self.argument_result = 0.0  # 연산 결과 값
+        self.argument_formula = ''  # 연산 공식을 저장할 문자열
+        self.operator = ['+', '-', '*', '/']  # 연산자 리스트 (더하기, 빼기, 곱하기, 나누기)
+        self.callback_group = ReentrantCallbackGroup()  # 동시 콜백 처리를 위한 콜백 그룹
+
+        # QoS 설정
+        self.declare_parameter('qos_depth', 10)  # 'qos_depth'라는 파라미터 선언
+        qos_depth = self.get_parameter('qos_depth').value  # 선언한 파라미터의 값 불러오기
+
+        # QoS 프로파일 생성: 신뢰성, 히스토리, 버퍼 깊이, 내구성 설정
+        QOS_RKL10V = QoSProfile(
+            reliability=QoSReliabilityPolicy.RELIABLE,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=qos_depth,
+            durability=QoSDurabilityPolicy.VOLATILE)
+
+        # ArithmeticArgument 메시지 구독 설정
+        self.arithmetic_argument_subscriber = self.create_subscription(
+            ArithmeticArgument,  # 구독할 메시지 타입
+            'arithmetic_argument',  # 토픽 이름
+            self.get_arithmetic_argument,  # 메시지 수신 시 호출될 콜백 함수
+            QOS_RKL10V,  # QoS 프로파일 적용
+            callback_group=self.callback_group)  # 콜백 그룹 사용
+
+        # ArithmeticOperator 서비스를 제공
+        self.arithmetic_service_server = self.create_service(
+            ArithmeticOperator,  # 제공할 서비스 타입
+            'arithmetic_operator',  # 서비스 이름
+            self.get_arithmetic_operator,  # 서비스 호출 시 실행될 콜백 함수
+            callback_group=self.callback_group)  # 콜백 그룹 사용
+
+        # ArithmeticChecker 액션 서버 설정
+        self.arithmetic_action_server = ActionServer(
+            self,  # 노드 인스턴스
+            ArithmeticChecker,  # 액션 메시지 타입
+            'arithmetic_checker',  # 액션 서버 이름
+            self.execute_checker,  # 액션 요청 시 실행될 콜백 함수
+            callback_group=self.callback_group)  # 콜백 그룹 사용
+
+    # 구독한 메시지의 데이터를 처리하는 콜백 함수
+    def get_arithmetic_argument(self, msg):
+        self.argument_a = msg.argument_a  # 메시지로 받은 첫 번째 값 저장
+        self.argument_b = msg.argument_b  # 메시지로 받은 두 번째 값 저장
+        # 메시지의 타임스탬프와 두 수를 로그로 출력
+        self.get_logger().info('Timestamp of the message: {0}'.format(msg.stamp))
+        self.get_logger().info('Subscribed argument a: {0}'.format(self.argument_a))
+        self.get_logger().info('Subscribed argument b: {0}'.format(self.argument_b))
+
+    # 서비스 요청을 처리하는 콜백 함수
+    def get_arithmetic_operator(self, request, response):
+        self.argument_operator = request.arithmetic_operator  # 서비스로 받은 연산자 값 저장
+        # 계산 결과를 계산하는 함수 호출
+        self.argument_result = self.calculate_given_formula(
+            self.argument_a,  # 첫 번째 값
+            self.argument_b,  # 두 번째 값
+            self.argument_operator)  # 연산자 값
+        # 서비스 응답에 계산 결과 저장
+        response.arithmetic_result = self.argument_result
+        # 연산 공식을 문자열로 저장
+        self.argument_formula = '{0} {1} {2} = {3}'.format(
+            self.argument_a,
+            self.operator[self.argument_operator - 1],  # 연산자 기호를 리스트에서 가져옴
+            self.argument_b,
+            self.argument_result)
+        # 계산 결과 공식 로그 출력
+        self.get_logger().info(self.argument_formula)
+        return response  # 서비스 응답 반환
+
+    # 연산을 수행하는 함수
+    def calculate_given_formula(self, a, b, operator):
+        if operator == ArithmeticOperator.Request.PLUS:
+            self.argument_result = a + b  # 더하기
+        elif operator == ArithmeticOperator.Request.MINUS:
+            self.argument_result = a - b  # 빼기
+        elif operator == ArithmeticOperator.Request.MULTIPLY:
+            self.argument_result = a * b  # 곱하기
+        elif operator == ArithmeticOperator.Request.DIVISION:
+            try:
+                self.argument_result = a / b  # 나누기
+            except ZeroDivisionError:
+                self.get_logger().error('ZeroDivisionError!')  # 0으로 나눌 때 오류 로그 출력
+                self.argument_result = 0.0  # 오류 발생 시 결과를 0으로 설정
+                return self.argument_result
+        else:
+            self.get_logger().error('Please make sure arithmetic operator(plus, minus, multiply, division).')  # 잘못된 연산자 오류 로그
+            self.argument_result = 0.0  # 오류 발생 시 결과를 0으로 설정
+        return self.argument_result  # 연산 결과 반환
+
+    # 액션 서버 요청을 처리하는 함수
+    def execute_checker(self, goal_handle):
+        self.get_logger().info('Execute arithmetic_checker action!')  # 액션 실행 로그 출력
+        feedback_msg = ArithmeticChecker.Feedback()  # 피드백 메시지 생성
+        feedback_msg.formula = []  # 공식을 저장할 리스트 초기화
+        total_sum = 0.0  # 총합 초기화
+        goal_sum = goal_handle.request.goal_sum  # 목표 합계를 클라이언트 요청에서 가져옴
+        # 총합이 목표 합계에 도달할 때까지 반복
+        while total_sum < goal_sum:
+            total_sum += self.argument_result  # 현재 연산 결과를 총합에 더함
+            feedback_msg.formula.append(self.argument_formula)  # 공식을 피드백 메시지에 추가
+            self.get_logger().info('Feedback: {0}'.format(feedback_msg.formula))  # 피드백 로그 출력
+            goal_handle.publish_feedback(feedback_msg)  # 클라이언트에 피드백 전송
+            time.sleep(1)  # 1초 대기
+        goal_handle.succeed()  # 목표 달성 시 성공 상태 설정
+        result = ArithmeticChecker.Result()  # 결과 메시지 생성
+        result.all_formula = feedback_msg.formula  # 모든 공식 결과 저장
+        result.total_sum = total_sum  # 총합 저장
+        return result  # 결과 반환
+
+```
