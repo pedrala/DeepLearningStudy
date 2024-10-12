@@ -3,4 +3,4 @@
 
 ![serviceDiagram](https://github.com/pedrala/DeepLearningStudy/blob/main/img/serviceDiagram.png?raw=true)
 
-![client_server](https://github.com/pedrala/DeepLearningStudy/blob/main/img/serviceDiagram.png?raw=true)
+![client_server](https://github.com/pedrala/DeepLearningStudy/blob/main/img/client_server.png?raw=true)
