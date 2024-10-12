@@ -7,18 +7,10 @@
 
 operator.py
 ------------
-구글의 오픈 이미지 데이터세트로 모델을 학습시킬 수 있는 파이썬코드
-여기에서 cctv사물인지를 위해 내려받은 데이터셋트를 SSD MobileNet v1 네트워크로 학습시키는 함수를 확인할 수 있음
+
 
 ```python
 
-import random  # 랜덤 숫자 생성을 위한 모듈
-
-from ros_study_msgs.srv import ArithmeticOperator  # ArithmeticOperator 서비스 메시지 임포트
-import rclpy  # ROS 2 파이썬 클라이언트 라이브러리
-from rclpy.node import Node  # ROS 2 노드 클래스 임포트
-
-# Operator 클래스 정의: 서비스 클라이언트로서 ArithmeticOperator 서비스를 호출
 class Operator(Node):
 
     def __init__(self):
@@ -32,6 +24,16 @@ class Operator(Node):
         # 서비스가 준비될 때까지 기다리는 루프
         while not self.arithmetic_service_client.wait_for_service(timeout_sec=0.1):
             self.get_logger().warning('The arithmetic_operator service not available.')  # 서비스가 준비되지 않으면 경고 로그 출력
+```
+Operator 클래스이다. rclpy.node 모듈의 Node 클래스를 상속하고 있으며 생성자에서 'operator' 이라는 노드 이름으로 초기화되었다. 
+
+그 뒤 arithmetic_service_client이라는 이름으로 서비스 클라이언트를 선언해주는데 이는 Node 클래스의 create_client 함수를 이용하여 서비스 클라이언트로 선언하는 부분으로 서비스의 타입으로 서비스 서버와 동일하게 ArithmeticOperator으로 선언하였고, 서비스 이름으로는 'arithmetic_operator'으로 선언하였다.
+
+arithmetic_service_client 의 wait_for_service 함수는 서비스 요청을 할 수 있는 상태인지 알아보기 위해 서비스 서버가 실행되어 있는지 확인하는 함수로 0.1초 간격으로 서비스 서버가 실행되어 있는지 확인하게 된다.
+
+
+```python
+
 
     # 서비스 요청을 보내는 함수
     def send_request(self):
@@ -39,6 +41,38 @@ class Operator(Node):
         service_request.arithmetic_operator = random.randint(1, 4)  # 랜덤하게 1부터 4까지의 연산자 선택 (예: 더하기, 빼기, 곱하기, 나누기)
         futures = self.arithmetic_service_client.call_async(service_request)  # 비동기로 서비스 호출
         return futures  # 서비스 응답을 대기하는 future 객체 반환
+
+```
+우리가 작성하고 있는 서비스 클라이언트의 목적은 서비스 서버에게 연산에 필요한 연산자를 보내는 것이라고 했다. 
+
+이 send_request 함수가 실질적인 서비스 클라이언트의 실행 코드로 서비스 서버에게 서비스 요청값을 보내고 응답값을 받게 된다. 
+
+서비스 요청값을 보내기 위하여 제일 먼저 우리가 미리 작성해둔 서비스 인터페이스 ArithmeticOperator.Request() 클래스로 service_request를 선언하였고 서비스 요청값으로 random.randint() 함수를 이용하여 특정 연산자를 self.request의 arithmetic_operator 변수에 저장하였다.
+
+그 뒤 'call_async(self.request)' 함수로 서비스 요청을 수행하게 설정하였다. 
+
+끝으로 서비스 상태 및 응답값을 담은 futures를 반환하게 된다.
+```
+
+```python
+    entry_points={
+        'console_scripts': [
+            'argument = topic_service_action_rclpy_example.arithmetic.argument:main',
+            'operator = topic_service_action_rclpy_example.arithmetic.operator:main',
+            'calculator = topic_service_action_rclpy_example.calculator.main:main',
+            'checker = topic_service_action_rclpy_example.checker.main:main',
+        ],
+    },
+
+```
+
+서비스 클라이언트 노드인 operator 노드는 'topic_service_action_rclpy_example' 패키지의 일부로 패키지 설정 파일에 'entry_points'로 실행 가능한 콘솔 스크립트의 이름과 호출 함수를 기입하도록 되어 있는데 우리는 하기와 같이 4개의 노드를 작성하고 'ros2 run' 과 같은 노드 실행 명령어를 통하여 각각의 노드를 실행시키고 있다. 
+
+operator 노드는 topic_service_action_rclpy_example 패키지의 arithmetic 폴더에 operator.py의 main문에 실행 코드가 담겨져 있다.
+
+
+```python
+
 
 # 메인 함수 정의: 노드를 실행하고 서비스 요청을 보내고 응답을 처리
 def main(args=None):
@@ -76,6 +110,18 @@ if __name__ == '__main__':
     main()
 
 ```
+​즉, 다음이 main함수가 실행 코드인데 rclpy.init를 이용하여 초기화하고 위에서 작성한 Operator 클래스를 operator라는 이름으로 생성한 다음 future = operator.send_request() 와 같이 서비스 요청을 보내고 응답값을 받게된다. 
+
+그 뒤 rclpy.spin_once 함수를 이용하여 생성한 노드를 주기적으로 spin시켜 지정된 콜백함수가 실행될 수 있도록 하고 있다. 
+
+이때 매 spin마다 노드의 콜백함수가 실행되고 서비스 응답값을 받았을 때 future의 done 함수를 이용해 요청값을 제대로 받았는지 확인 후 결괏값은 service_response = future.result() 같이 service_response라는 변수에 저장하여 사용하게 된다.
+
+서비스 응답값은 get_logger().info() 함수를 이용하여 화면에 서비스 응답값에 해당되는 연산 결괏값을 표시하는 것이다. 
+
+그리고 종료 `Ctrl + c`와 같은 인터럽트 시그널 예외 상황에서는 operator를 소멸시키고 rclpy.shutdown 함수로 노드를 종료하게 된다.
+
+
+
 calculator.py
 ------------
 
