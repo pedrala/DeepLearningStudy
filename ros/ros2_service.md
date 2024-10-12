@@ -52,11 +52,13 @@ arithmetic_service_client 의 wait_for_service 함수는 서비스 요청을 할
 그 뒤 'call_async(self.request)' 함수로 서비스 요청을 수행하게 설정하였다. 
 
 끝으로 서비스 상태 및 응답값을 담은 futures를 반환하게 된다.
-```
+
 
 setup.py
 ------------
+
 ```python
+
   entry_points={
         'console_scripts': [
             'argument = ex_calculator.arithmetic.argument:main',
