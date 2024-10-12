@@ -1,3 +1,8 @@
+서비스 노드
+==================
+서비스(Service)는 아래 그림의 `Node B - Node C`처럼 동기식 양방향 메시지 송수신 방식으로 서비스의 요청(Request)을 하는 쪽을 Service client라고 하며 서비스의 응답(Response)을 하는 쪽을 Service server라고 한다. 결국 서비스는 특정 요청을 하는 클라이언트 단과 요청받은 일을 수행 후에 결과 값을 전달하는 서버 단과의 통신이라고 볼 수 있다. 서비스 요청 및 응답(Request/Response) 또한 위에서 언급한 msg 메시지의 변형으로 srv 메시지라고 한다.
+
+![service](https://github.com/pedrala/DeepLearningStudy/blob/main/img/service.png?raw=true)
 
 
 기본 구조
