@@ -54,13 +54,15 @@ arithmetic_service_client 의 wait_for_service 함수는 서비스 요청을 할
 끝으로 서비스 상태 및 응답값을 담은 futures를 반환하게 된다.
 ```
 
+setup.py
+------------
 ```python
-    entry_points={
+  entry_points={
         'console_scripts': [
-            'argument = topic_service_action_rclpy_example.arithmetic.argument:main',
-            'operator = topic_service_action_rclpy_example.arithmetic.operator:main',
-            'calculator = topic_service_action_rclpy_example.calculator.main:main',
-            'checker = topic_service_action_rclpy_example.checker.main:main',
+            'argument = ex_calculator.arithmetic.argument:main',
+            'operator = ex_calculator.arithmetic.operator:main',
+            'calculator = ex_calculator.calculator.main:main',
+            'checker = ex_calculator.checker.main:main',
         ],
     },
 
