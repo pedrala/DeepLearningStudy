@@ -1,7 +1,10 @@
 
+![serviceDiagram](https://github.com/pedrala/DeepLearningStudy/blob/main/img/serviceDiagram.png?raw=true)
+
+
+서비스는 다음 그림과 같이 동일 서비스에 대해 복수의 클라이언트를 가질 수 있도록 설계되었다. 단, 서비스 응답은 서비스 요청이 있었던 서비스 클라이언트에 대해서만 응답을 하는 형태로 그림의 구성에서 예를 들자면 Node C의 Service Client가 Node B의 Service Server에게 서비스 요청을 하였다면 Node B의 Service Server는 요청받은 서비스를 수행한 후 Node C의 Service Client에게만 서비스 응답을 하게된다.
 ![serviceServer_client](https://github.com/pedrala/DeepLearningStudy/blob/main/img/serviceServer_client.png?raw=true)
 
-![serviceDiagram](https://github.com/pedrala/DeepLearningStudy/blob/main/img/serviceDiagram.png?raw=true)
 
 ![client_server](https://github.com/pedrala/DeepLearningStudy/blob/main/img/client_server.png?raw=true)
 
