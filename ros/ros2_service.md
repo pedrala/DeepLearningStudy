@@ -5,6 +5,13 @@
 서비스는 다음 그림과 같이 동일 서비스에 대해 복수의 클라이언트를 가질 수 있도록 설계되었다. 단, 서비스 응답은 서비스 요청이 있었던 서비스 클라이언트에 대해서만 응답을 하는 형태로 그림의 구성에서 예를 들자면 Node C의 Service Client가 Node B의 Service Server에게 서비스 요청을 하였다면 Node B의 Service Server는 요청받은 서비스를 수행한 후 Node C의 Service Client에게만 서비스 응답을 하게된다.
 ![serviceServer_client](https://github.com/pedrala/DeepLearningStudy/blob/main/img/serviceServer_client.png?raw=true)
 
+서비스 요청을 하는 서비스 클라이언트와 서비스 응답을 하는 서비스 서버를 작성해 볼 것이다. 여기서 서비스 요청 값으로는 연산자(+, -, *, /)를 임의로 선택 후에 보낼 것이고 기존에 저장한 변수 a, b를 요청 값으로 받은 연산자로 계산하여 결괏값을 서비스 응답 값으로 보내는 프로그램을 짜볼 것이다. 강좌 진행에 앞서서 서비스에 대한 자세한 내용은 ROS 2 서비스 (service)' 강좌를 참고하도록 하자.
+
+​1) operator node
+: arithmetic_operator 이라는 서비스 이름으로 calculator 노드에게 연산자(+, -, *, /)를 서비스 요청(Request)값으로 보낸다.
+
+2) calculator node
+: 서브스크라이브하여 저장하고 있는 변수 a와 b와 operator 노드로부터 요청 값으로 받은 연산자를 이용하여 계산(a 연산자 b)하고 operator 노드에게 연산의 결괏값을 서비스 응답(Response)값으로 보낸다.
 
 ![client_server](https://github.com/pedrala/DeepLearningStudy/blob/main/img/client_server.png?raw=true)
 
