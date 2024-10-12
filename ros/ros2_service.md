@@ -78,55 +78,8 @@ if __name__ == '__main__':
 ```
 calculator.py
 ------------
-calculator 노드는 서브스크라이브하여 저장하고 있는 변수 a와 b와 operator 노드로부터 요청 값으로 받은 연산자를 이용하여 계산(a 연산자 b)하고 operator 노드에게 연산의 결괏값을 서비스 응답값으로 보낸다.
-
-이 중 서비스 서버와 관련한 코드는 아래와 같다. 서버 관련 코드는 서비스 서버로 선언하는 부분과 콜백함수를 지정하는 것이다. arithmetic_service_server이 서비스 서버로 이는 Node 클래스의 create_service 함수를 이용하여 서비스 서버로 선언되었으며 서비스의 타입으로 ArithmeticOperator으로 선언하였고, 서비스 이름으로는 'arithmetic_operator', 서비스 클라이언트로부터 서비스 요청이 있으면 실행되는 콜백함수는 get_arithmetic_operator 으로 지정했으며 멀티 스레드 병렬 콜백함수 실행을 위해 지난번 강좌에서 설명한 callback_group 설정을 하였다. 
-
-이러한 설정들은 서비스 서버를 위한 기본 설정이고 실제 서비스 요청에 해당되는 특정 수행 코드가 수행되는 부분은 get_arithmetic_operator 이라는 콜백함수임을 알아두자.
 
 ```python
-
-import time  # 시간 관련 함수 사용을 위한 모듈
-
-from ros_study_msgs.action import ArithmeticChecker  # ArithmeticChecker 액션 메시지 임포트
-from ros_study_msgs.msg import ArithmeticArgument  # ArithmeticArgument 메시지 임포트
-from ros_study_msgs.srv import ArithmeticOperator  # ArithmeticOperator 서비스 메시지 임포트
-from rclpy.action import ActionServer  # ROS 2 액션 서버 클래스 임포트
-from rclpy.callback_groups import ReentrantCallbackGroup  # 콜백 그룹 관리 클래스
-from rclpy.node import Node  # ROS 2 노드 클래스 임포트
-from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy  # QoS 관련 설정
-
-# Calculator 클래스 정의: 메시지 구독, 서비스 제공, 액션 서버 포함
-class Calculator(Node):
-
-    def __init__(self):
-        super().__init__('calculator')  # 'calculator'라는 이름으로 노드 초기화
-        self.argument_a = 0.0  # 구독할 첫 번째 값
-        self.argument_b = 0.0  # 구독할 두 번째 값
-        self.argument_operator = 0  # 서비스로 받을 연산자 값
-        self.argument_result = 0.0  # 연산 결과 값
-        self.argument_formula = ''  # 연산 공식을 저장할 문자열
-        self.operator = ['+', '-', '*', '/']  # 연산자 리스트 (더하기, 빼기, 곱하기, 나누기)
-        self.callback_group = ReentrantCallbackGroup()  # 동시 콜백 처리를 위한 콜백 그룹
-
-        # QoS 설정
-        self.declare_parameter('qos_depth', 10)  # 'qos_depth'라는 파라미터 선언
-        qos_depth = self.get_parameter('qos_depth').value  # 선언한 파라미터의 값 불러오기
-
-        # QoS 프로파일 생성: 신뢰성, 히스토리, 버퍼 깊이, 내구성 설정
-        QOS_RKL10V = QoSProfile(
-            reliability=QoSReliabilityPolicy.RELIABLE,
-            history=QoSHistoryPolicy.KEEP_LAST,
-            depth=qos_depth,
-            durability=QoSDurabilityPolicy.VOLATILE)
-
-        # ArithmeticArgument 메시지 구독 설정
-        self.arithmetic_argument_subscriber = self.create_subscription(
-            ArithmeticArgument,  # 구독할 메시지 타입
-            'arithmetic_argument',  # 토픽 이름
-            self.get_arithmetic_argument,  # 메시지 수신 시 호출될 콜백 함수
-            QOS_RKL10V,  # QoS 프로파일 적용
-            callback_group=self.callback_group)  # 콜백 그룹 사용
 
         # ArithmeticOperator 서비스를 제공
         self.arithmetic_service_server = self.create_service(
@@ -134,24 +87,15 @@ class Calculator(Node):
             'arithmetic_operator',  # 서비스 이름
             self.get_arithmetic_operator,  # 서비스 호출 시 실행될 콜백 함수
             callback_group=self.callback_group)  # 콜백 그룹 사용
+```
+            
+calculator 노드는 서브스크라이브하여 저장하고 있는 변수 a와 b와 operator 노드로부터 요청 값으로 받은 연산자를 이용하여 계산(a 연산자 b)하고 operator 노드에게 연산의 결괏값을 서비스 응답값으로 보낸다.
 
-        # ArithmeticChecker 액션 서버 설정
-        self.arithmetic_action_server = ActionServer(
-            self,  # 노드 인스턴스
-            ArithmeticChecker,  # 액션 메시지 타입
-            'arithmetic_checker',  # 액션 서버 이름
-            self.execute_checker,  # 액션 요청 시 실행될 콜백 함수
-            callback_group=self.callback_group)  # 콜백 그룹 사용
+이 중 서비스 서버와 관련한 코드는 아래와 같다. 서버 관련 코드는 서비스 서버로 선언하는 부분과 콜백함수를 지정하는 것이다. arithmetic_service_server이 서비스 서버로 이는 Node 클래스의 create_service 함수를 이용하여 서비스 서버로 선언되었으며 서비스의 타입으로 ArithmeticOperator으로 선언하였고, 서비스 이름으로는 'arithmetic_operator', 서비스 클라이언트로부터 서비스 요청이 있으면 실행되는 콜백함수는 get_arithmetic_operator 으로 지정했으며 멀티 스레드 병렬 콜백함수 실행을 위해 지난번 강좌에서 설명한 callback_group 설정을 하였다. 
 
-    # 구독한 메시지의 데이터를 처리하는 콜백 함수
-    def get_arithmetic_argument(self, msg):
-        self.argument_a = msg.argument_a  # 메시지로 받은 첫 번째 값 저장
-        self.argument_b = msg.argument_b  # 메시지로 받은 두 번째 값 저장
-        # 메시지의 타임스탬프와 두 수를 로그로 출력
-        self.get_logger().info('Timestamp of the message: {0}'.format(msg.stamp))
-        self.get_logger().info('Subscribed argument a: {0}'.format(self.argument_a))
-        self.get_logger().info('Subscribed argument b: {0}'.format(self.argument_b))
+이러한 설정들은 서비스 서버를 위한 기본 설정이고 실제 서비스 요청에 해당되는 특정 수행 코드가 수행되는 부분은 get_arithmetic_operator 이라는 콜백함수임을 알아두자.
 
+```python
     # 서비스 요청을 처리하는 콜백 함수
     def get_arithmetic_operator(self, request, response):
         self.argument_operator = request.arithmetic_operator  # 서비스로 받은 연산자 값 저장
@@ -171,6 +115,16 @@ class Calculator(Node):
         # 계산 결과 공식 로그 출력
         self.get_logger().info(self.argument_formula)
         return response  # 서비스 응답 반환
+
+```
+
+get_arithmetic_operator 함수의 내용을 보도록 하자. 우선 제일 먼저 request와 response 이라는 매개 변수가 보이는데 이는 ArithmeticOperator() 클래스로 생성된 인터페이스로 서비스 요청에 해당되는 request 부분과 응답에 해당되는 response으로 구분된다. 
+
+get_arithmetic_operator 함수는 서비스 요청이 있을 때 실행되는 콜백함수인데 여기서는 서비스 요청시 요청값으로 받은 연산자와 이전에 토픽 서브스크라이버가 토픽 값으로 전달받아 저장해둔 변수 a, b를 전달받은 연산자로 연산 후에 결괏값을 서비스 응답값으로 반환한다. 
+
+이 함수의 첫 줄에서 request.arithmetic_operator를 받아와서 calculate_given_formula 함수에서 서비스 요청값으로 받은 연산자에 따라 연산하는 코드를 볼 수 있을 것이다. calculate_given_formula 함수로부터 받은 연산 결괏값은 response.arithmetic_result에 저장하고 끝으로 관련 수식을 문자열로 표현하여 get_logger().info() 함수를 통해 화면에 표시하고 있다. 
+
+```python
 
     # 연산을 수행하는 함수
     def calculate_given_formula(self, a, b, operator):
@@ -192,24 +146,37 @@ class Calculator(Node):
             self.argument_result = 0.0  # 오류 발생 시 결과를 0으로 설정
         return self.argument_result  # 연산 결과 반환
 
-    # 액션 서버 요청을 처리하는 함수
-    def execute_checker(self, goal_handle):
-        self.get_logger().info('Execute arithmetic_checker action!')  # 액션 실행 로그 출력
-        feedback_msg = ArithmeticChecker.Feedback()  # 피드백 메시지 생성
-        feedback_msg.formula = []  # 공식을 저장할 리스트 초기화
-        total_sum = 0.0  # 총합 초기화
-        goal_sum = goal_handle.request.goal_sum  # 목표 합계를 클라이언트 요청에서 가져옴
-        # 총합이 목표 합계에 도달할 때까지 반복
-        while total_sum < goal_sum:
-            total_sum += self.argument_result  # 현재 연산 결과를 총합에 더함
-            feedback_msg.formula.append(self.argument_formula)  # 공식을 피드백 메시지에 추가
-            self.get_logger().info('Feedback: {0}'.format(feedback_msg.formula))  # 피드백 로그 출력
-            goal_handle.publish_feedback(feedback_msg)  # 클라이언트에 피드백 전송
-            time.sleep(1)  # 1초 대기
-        goal_handle.succeed()  # 목표 달성 시 성공 상태 설정
-        result = ArithmeticChecker.Result()  # 결과 메시지 생성
-        result.all_formula = feedback_msg.formula  # 모든 공식 결과 저장
-        result.total_sum = total_sum  # 총합 저장
-        return result  # 결과 반환
+```
+
+calculate_given_formula 함수로 인수 a, b를 가지고 주어진 연산자 operator에 따라 사칙연산을 하여 결괏값을 반환한다.
+
+
+```python
+import rclpy
+from rclpy.executors import MultiThreadedExecutor
+
+from topic_service_action_rclpy_example.calculator.calculator import Calculator
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    try:
+        calculator = Calculator()
+        executor = MultiThreadedExecutor(num_threads=4)
+        executor.add_node(calculator)
+        try:
+            executor.spin()
+        except KeyboardInterrupt:
+            calculator.get_logger().info('Keyboard Interrupt (SIGINT)')
+        finally:
+            executor.shutdown()
+            calculator.arithmetic_action_server.destroy()
+            calculator.destroy_node()
+    finally:
+        rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
 
 ```
