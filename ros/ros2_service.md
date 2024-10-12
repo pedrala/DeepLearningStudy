@@ -1,2 +1,2 @@
 
-![serviceServer_client](https://github.com/user-attachments/assets/7a937977-5742-40f1-960f-38e27a556b14)
+![serviceServer_client](https://github.com/pedrala/DeepLearningStudy/blob/main/img/serviceServer_client.png?raw=true)
