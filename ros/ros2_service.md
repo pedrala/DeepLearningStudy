@@ -70,10 +70,12 @@ setup.py
 
 ```
 
-서비스 클라이언트 노드인 operator 노드는 'topic_service_action_rclpy_example' 패키지의 일부로 패키지 설정 파일에 'entry_points'로 실행 가능한 콘솔 스크립트의 이름과 호출 함수를 기입하도록 되어 있는데 우리는 하기와 같이 4개의 노드를 작성하고 'ros2 run' 과 같은 노드 실행 명령어를 통하여 각각의 노드를 실행시키고 있다. 
+서비스 클라이언트 노드인 operator 노드는 'ex_calculator' 패키지의 일부로 패키지 설정 파일에 'entry_points'로 실행 가능한 콘솔 스크립트의 이름과 호출 함수를 기입하도록 되어 있는데 우리는 하기와 같이 4개의 노드를 작성하고 'ros2 run' 과 같은 노드 실행 명령어를 통하여 각각의 노드를 실행시키고 있다. 
 
 operator 노드는 topic_service_action_rclpy_example 패키지의 arithmetic 폴더에 operator.py의 main문에 실행 코드가 담겨져 있다.
 
+operator.py
+------------
 
 ```python
 
