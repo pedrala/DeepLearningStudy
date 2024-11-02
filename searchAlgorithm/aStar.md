@@ -1,3 +1,6 @@
+HeapQ test
+==================
+
 ```python
 import heapq
 
@@ -16,7 +19,116 @@ smallest = heapq.heappop(heap)  # smallest는 1이 됩니다.
 print(heap)  # [3, 5]
 ```
 
+dijkstra Algorithm 
+==================
+A* 알고리즘에서 휴리스틱만 빠진 형태
 
+```python
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import numpy as np
+import heapq
+
+# 그리드 설정 (1: 장애물 추가)
+grid = np.array([
+    [0, 0, 1, 0, 0, 0],
+    [1, 0, 0, 0, 1, 0],
+    [0, 0, 1, 0, 1, 0],
+    [0, 1, 1, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0]
+])
+
+# 시작 지점과 목표 지점 설정
+start = (0, 0)
+goal = (4, 5)
+
+# 이동 방향 설정 (상, 하, 좌, 우)
+delta = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+def dijkstra(grid, start, goal):
+    open_list = []
+    heapq.heappush(open_list, (0, start))  # (비용, 위치)
+    visited = set()
+    visited_nodes = []
+    cost_so_far = {start: 0}
+    came_from = {}
+
+    while open_list:
+        current_cost, current = heapq.heappop(open_list)
+        visited_nodes.append(current)
+
+        if current == goal:
+            break
+
+        visited.add(current)
+
+        for dx, dy in delta:
+            neighbor = (current[0] + dx, current[1] + dy)
+
+            if (0 <= neighbor[0] < grid.shape[0] and
+                0 <= neighbor[1] < grid.shape[1] and
+                grid[neighbor[0]][neighbor[1]] == 0 and
+                neighbor not in visited):
+                
+                new_cost = current_cost + 1
+
+                if neighbor not in cost_so_far or new_cost < cost_so_far[neighbor]:
+                    cost_so_far[neighbor] = new_cost
+                    priority = new_cost
+                    heapq.heappush(open_list, (priority, neighbor))
+                    came_from[neighbor] = current
+
+    # 목표 노드까지의 경로 복원
+    path = []
+    if current == goal:
+        while current in came_from:
+            path.append(current)
+            current = came_from[current]
+        path.append(start)
+        path.reverse()
+
+    return path, visited_nodes
+
+# 다익스트라 알고리즘 실행
+optimal_path, visited_nodes = dijkstra(grid, start, goal)
+
+# 시각화
+fig, ax = plt.subplots()
+ax.set_title('dijkstra algo')
+
+def update(num):
+    ax.clear()
+    ax.imshow(grid, cmap='Greys')
+
+    # 장애물 표시
+    obstacles = np.argwhere(grid == 1)
+    if obstacles.size > 0:
+        x_obs, y_obs = zip(*obstacles)
+        ax.plot(y_obs, x_obs, 's', color='black', markersize=10)
+
+    # 방문한 노드 표시
+    if num < len(visited_nodes):
+        x_vals, y_vals = zip(*visited_nodes[:num+1])
+        ax.plot(y_vals, x_vals, 'o', color='yellow', markersize=5)
+
+    # 최적 경로 표시
+    if optimal_path and num >= len(visited_nodes) - 1:
+        x_opt, y_opt = zip(*optimal_path)
+        ax.plot(y_opt, x_opt, color='blue', linewidth=2)
+
+    # 시작 지점과 목표 지점 표시
+    ax.plot(start[1], start[0], 's', color='green', markersize=10, label='시작')
+    ax.plot(goal[1], goal[0], 's', color='red', markersize=10, label='목표')
+    ax.legend()
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+ani = animation.FuncAnimation(fig, update, frames=len(visited_nodes)+10, interval=200, repeat=False)
+plt.show()
+```
+
+dijkstra Algorithm 
+==================
 
 ```python
 import matplotlib.pyplot as plt
@@ -123,8 +235,10 @@ plt.show()
 ```
 
 
-
+JPS
+==================
 ```python
+
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
@@ -243,6 +357,7 @@ def update(num):
 
 ani = animation.FuncAnimation(fig, update, frames=len(visited_nodes)+20, interval=50, repeat=False)
 plt.show()
+
 ```
 
 
