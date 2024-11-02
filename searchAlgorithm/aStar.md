@@ -1,4 +1,4 @@
-'pyhton
+```python
 import heapq
 
 # 빈 힙 생성
@@ -14,4 +14,4 @@ smallest = heapq.heappop(heap)  # smallest는 1이 됩니다.
 
 # 힙 상태 출력
 print(heap)  # [3, 5]
-'
+```
